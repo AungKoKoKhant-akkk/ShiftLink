@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/react/daygrid";
 import interactionPlugin from "@fullcalendar/react/interaction";
@@ -7,29 +8,16 @@ import themePlugin from "@fullcalendar/react/themes/classic";
 import "@fullcalendar/react/skeleton.css";
 import "@fullcalendar/react/themes/classic/theme.css";
 import "@fullcalendar/react/themes/classic/palette.css";
+import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 
-const shiftEvents = [
-    {
-        title: "Aung · 17:00–22:00",
-        date: "2026-09-16",
-        color: "#8b5cf6",
-    },
-    {
-        title: "Yuki · 10:00–18:00",
-        date: "2026-09-18",
-        color: "#3b82f6",
-    },
-    {
-        title: "Aung · 16:00–22:00",
-        date: "2026-09-20",
-        color: "#22c55e",
-    },
-];
-
-export default function ShiftCalendar(){
-    return(
-
-
+export default function ShiftCalendar() {
+    const { shifts } = useShiftLink();
+    const shiftEvents = shifts.map((shift) => ({
+        title: `${shift.employee.split(" ")[0]} · ${shift.time}`,
+        date: shift.date,
+        color: shift.type === "Student" ? "#8b5cf6" : "#3b82f6",
+    }));
+    return (
         <div className="mt-4">
             <FullCalendar
                 plugins={[themePlugin, dayGridPlugin, interactionPlugin]}

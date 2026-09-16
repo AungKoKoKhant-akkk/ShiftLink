@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShiftLink
 
-## Getting Started
+A mock-data shift scheduling app built with Next.js, TypeScript, Tailwind CSS, daisyUI, lucide-react, and FullCalendar.
 
-First, run the development server:
+## Commands
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `npm run dev` — start development.
+- `npm run lint` — check ESLint rules.
+- `npm run build` — type-check and build all routes.
+- `npm start` — serve the production build.
+- `node --test tests/shiftCalculator.test.mjs` — run calculation regression tests (Node.js 22.18+ or 24+ with native TypeScript stripping).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Code organization
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `src/app`: route views and page-specific state, validation, and event handlers.
+- `src/components/layout/AppShell.tsx`: shared sidebar/main layout, mounted once in the root layout.
+- `src/components`: shared headers, badges, modal frames, record actions, sidebar, and calendar.
+- `src/components/providers`: React Context providers for shared in-memory ShiftLink data and daisyUI feedback dialogs.
+- `src/types`: employee, shift, swap-request, status, and form types.
+- `src/data`: typed mock fixtures, mock current employee, and static dashboard preview values.
+- `src/lib/date.ts`: calendar-date formatting.
+- `src/lib/shiftCalculator.ts`: net working hours and rolling seven-day totals.
+- `src/lib/studentHours.ts`: shared student-hour limit and warning thresholds.
+- `src/lib/forms.ts`: fresh employee and shift form defaults.
+- `src/lib/employees.ts`: shared active-employee predicate.
+- `tests`: calculation regression tests.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## State and scheduling behavior
 
-## Learn More
+No database, API, or authentication is connected. A React Context store keeps mock employees, shifts, and swap requests in sync while navigating between pages during the current browser session. Refreshing the page resets the fixtures. Dashboard figures remain static mock previews.
 
-To learn more about Next.js, take a look at the following resources:
+Working hours exclude breaks and support overnight shifts. Each shift's net hours belong to its stored calendar date. Adding or editing a student shift checks every seven-calendar-day window containing that shift, including future scheduled shifts. Editing excludes the old shift before recalculating. Exactly 28 hours is allowed; totals above 28 are blocked. Student monitoring shows the largest rolling seven-day total.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Page-specific handlers stay with their views. Shared calculations and repeated UI belong in `src/lib` and `src/components`; keep mock fixtures in `src/data`.

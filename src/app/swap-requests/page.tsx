@@ -1,72 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import StatusBadge from "@/components/StatusBadge";
 import { Check, X } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
-
-const initialRequests = [
-    {
-        id: 1,
-        employee: "Aung Ko Ko Khant",
-        date: "2026-09-16",
-        time: "17:00 – 22:00",
-        reason: "I have a school event.",
-        status: "Pending",
-        replacementEmployee: "",
-    },
-    {
-        id: 2,
-        employee: "Maria Santos",
-        date: "2026-09-20",
-        time: "16:00 – 22:00",
-        reason: "I need to attend a medical appointment.",
-        status: "Pending",
-        replacementEmployee: "",
-    },
-];
-
-const availableEmployees = [
-    "Tanaka Yuki",
-    "Maria Santos",
-    "Sato Ken",
-];
+import type { SwapRequestStatus } from "@/types/swapRequest";
+import { isActiveEmployee } from "@/lib/employees";
+import PageHeader from "@/components/PageHeader";
+import { useFeedback } from "@/components/providers/FeedbackProvider";
+import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 
 export default function SwapRequestsPage() {
-    const [requestList, setRequestList] = useState(initialRequests);
+    const { employees, swapRequests, updateSwapRequest } = useShiftLink();
+    const { notify } = useFeedback();
+    const availableEmployees = employees.filter(isActiveEmployee);
 
-    function updateRequestStatus(id: number, status: string) {
-        setRequestList(
-            requestList.map((request) =>
-                request.id === id ? { ...request, status } : request
-            )
-        );
+    function updateRequestStatus(id: number, status: SwapRequestStatus) {
+        updateSwapRequest(id, { status });
     }
 
     function handleApproveRequest(id: number) {
-        const request = requestList.find((request) => request.id === id);
+        const request = swapRequests.find((request) => request.id === id);
 
         if (!request?.replacementEmployee) {
-            alert("Please select a replacement employee first.");
+            notify("Please select a replacement employee first.", "error");
             return;
         }
 
         updateRequestStatus(id, "Approved");
+        notify("Swap request approved.");
     }
 
     return (
-        <div className="flex min-h-screen bg-base-200">
-            <Sidebar />
-
-            <main className="flex-1 p-8">
-                <h1 className="text-3xl font-bold">Swap Requests</h1>
-
-                <p className="mt-2 text-base-content/70">
-                    Review employee shift-swap requests.
-                </p>
-
-                <div className="mt-8 overflow-x-auto rounded-box bg-base-100 shadow">
-                    <table className="table">
-                        <thead>
+        <>
+            <PageHeader
+                title="Swap Requests"
+                description="Review employee shift-swap requests."
+            />
+            <div className="mt-8 overflow-x-auto rounded-box bg-base-100 shadow">
+                <table className="table">
+                    <thead>
                         <tr>
                             <th>Employee</th>
                             <th>Shift</th>
@@ -75,10 +46,10 @@ export default function SwapRequestsPage() {
                             <th>Status</th>
                             <th>Manager Action</th>
                         </tr>
-                        </thead>
+                    </thead>
 
-                        <tbody>
-                        {requestList.map((request) => (
+                    <tbody>
+                        {swapRequests.map((request) => (
                             <tr key={request.id}>
                                 <td className="font-medium">{request.employee}</td>
 
@@ -99,43 +70,25 @@ export default function SwapRequestsPage() {
                                         className="select select-bordered select-sm"
                                         value={request.replacementEmployee}
                                         disabled={request.status !== "Pending"}
-                                        onChange={(e) =>
-                                            setRequestList(
-                                                requestList.map((item) =>
-                                                    item.id === request.id
-                                                        ? {
-                                                            ...item,
-                                                            replacementEmployee: e.target.value,
-                                                        }
-                                                        : item
-                                                )
-                                            )
-                                        }
+                                        onChange={(e) => {
+                                            const replacementEmployee = e.target.value;
+                                            updateSwapRequest(request.id, { replacementEmployee });
+                                        }}
                                     >
                                         <option value="">Select employee</option>
 
                                         {availableEmployees
-                                            .filter((employee) => employee !== request.employee)
+                                            .filter((employee) => employee.name !== request.employee)
                                             .map((employee) => (
-                                                <option key={employee} value={employee}>
-                                                    {employee}
+                                                <option key={employee.code} value={employee.name}>
+                                                    {employee.name}
                                                 </option>
                                             ))}
                                     </select>
                                 </td>
 
                                 <td>
-                    <span
-                        className={`badge ${
-                            request.status === "Approved"
-                                ? "badge-success"
-                                : request.status === "Rejected"
-                                    ? "badge-error"
-                                    : "badge-warning"
-                        }`}
-                    >
-                      {request.status}
-                    </span>
+                                    <StatusBadge status={request.status} />
                                 </td>
 
                                 <td className="space-x-2">
@@ -161,10 +114,10 @@ export default function SwapRequestsPage() {
                                 </td>
                             </tr>
                         ))}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+
+        </>
     );
 }
