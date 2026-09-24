@@ -17,7 +17,7 @@ type MyShift = Shift & {
 
 
 export default function MySchedulePage() {
-    const { shifts, swapRequests, currentEmployee, requestSwap, isLoadingShifts } = useShiftLink();
+    const { shifts, swapRequests, currentUser, requestSwap, isLoadingShifts } = useShiftLink();
     const {notify} = useFeedback();
     const [isSubmitting , setIsSubmitting] = useState(false);
 
@@ -31,7 +31,7 @@ export default function MySchedulePage() {
     }
 
     const myShifts: MyShift[] = shifts
-        .filter((shift) => shift.employee === currentEmployee.name)
+        .filter((shift) => shift.employee === currentUser?.name)
         .map((shift) => {
             const latestSwap = latestSwapByShiftId.get(shift.id);
 

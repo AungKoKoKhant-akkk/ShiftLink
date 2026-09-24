@@ -52,7 +52,21 @@ async function readError(response: Response): Promise<string> {
 }
 
 export async function getSwapRequests(): Promise<SwapRequest[]> {
-    const response = await fetch(API_URL);
+    const response = await fetch(API_URL, { credentials: "include" });
+
+    if (!response.ok) {
+        throw new Error(await readError(response));
+    }
+
+    const data: ApiSwapRequest[] = await response.json();
+
+    return data.map(toFrontendSwapRequest);
+}
+
+export async function getMySwapRequests(): Promise<SwapRequest[]> {
+    const response = await fetch(`${API_URL}/my`, {
+        credentials: "include",
+    });
 
     if (!response.ok) {
         throw new Error(await readError(response));
@@ -69,6 +83,7 @@ export async function createSwapRequest(
 ): Promise<SwapRequest> {
     const response = await fetch(API_URL, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -91,6 +106,7 @@ export async function updateSwapRequestStatus(
 ): Promise<SwapRequest> {
     const response = await fetch(`${API_URL}/${id}/status`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },

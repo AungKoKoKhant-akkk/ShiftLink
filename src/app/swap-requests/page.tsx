@@ -7,6 +7,7 @@ import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 import { isActiveEmployee } from "@/lib/employees";
 import {CircleAlert} from "lucide-react";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function SwapRequestsPage() {
     const { employees, swapRequests, updateSwapRequest } = useShiftLink();
@@ -60,7 +61,7 @@ export default function SwapRequestsPage() {
         setProcessingRequestId(id);
 
         try {
-            await updateSwapRequest(id, { status: "Approved" });
+            await updateSwapRequest(id, { status: "Approved", replacementEmployeeId });
             notify("Swap request approved.");
         } catch (error) {
             notify(
@@ -73,24 +74,24 @@ export default function SwapRequestsPage() {
     }
 
     async function handleRejectRequest(id: number) {
-
         setProcessingRequestId(id);
-
         try {
-            await updateSwapRequest(id, { status: "Approved" });
-            notify("Swap request approved.");
+            await updateSwapRequest(id, { status: "Rejected" });
+            notify("Swap request rejected.");
         } catch (error) {
-            notify(
-                error instanceof Error ? error.message : "Failed to approve swap request.",
-                "error"
-            );
+            notify(error instanceof Error ? error.message : "Failed to reject swap request.", "error");
         } finally {
             setProcessingRequestId(null);
         }
     }
-
     return (
+
         <>
+            <RoleGuard allowedRoles={["Admin", "Manager"]}>
+                <>
+                    {/* existing page content */}
+                </>
+            </RoleGuard>
             <PageHeader
                 title="Swap Requests"
                 description="Review and manage employee shift swap requests."
@@ -274,3 +275,4 @@ export default function SwapRequestsPage() {
         </>
     );
 }
+

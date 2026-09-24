@@ -6,6 +6,7 @@ import { STUDENT_HOUR_LIMIT, STUDENT_HOUR_WARNING } from "@/lib/studentHours";
 import PageHeader from "@/components/PageHeader";
 import { calculateMaximumRollingSevenDayHours } from "@/lib/shiftCalculator";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function StudentHoursPage() {
     const { employees, shifts } = useShiftLink();
@@ -30,6 +31,11 @@ export default function StudentHoursPage() {
 
     return (
         <>
+            <RoleGuard allowedRoles={["Admin", "Manager"]}>
+                <>
+                    {/* existing page content */}
+                </>
+            </RoleGuard>
             <PageHeader
                 title="Student Hours"
                 description="Monitor student work hours for the 28-hour rule."

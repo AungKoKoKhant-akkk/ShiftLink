@@ -13,6 +13,7 @@ import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function ShiftManagementPage() {
     const { employees, shifts, saveShift, deleteShift } = useShiftLink();
@@ -121,6 +122,11 @@ export default function ShiftManagementPage() {
 
     return (
         <>
+            <RoleGuard allowedRoles={["Admin", "Manager"]}>
+                <>
+                    {/* existing page content */}
+                </>
+            </RoleGuard>
             <PageHeader
                 title="Shift Management"
                 description="Create and manage employee shifts."

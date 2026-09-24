@@ -52,6 +52,22 @@ async function getErrorMessage(response: Response) {
 export async function getShifts(): Promise<Shift[]> {
     const response = await fetch(`${API_BASE_URL}/api/shifts`, {
         cache: "no-store",
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    const shifts: ApiShift[] = await response.json();
+
+    return shifts.map(toFrontendShift);
+}
+
+export async function getMyShifts(): Promise<Shift[]> {
+    const response = await fetch(`${API_BASE_URL}/api/shifts/my`, {
+        cache: "no-store",
+        credentials: "include",
     });
 
     if (!response.ok) {
@@ -71,6 +87,7 @@ export async function createShift(
 
     const response = await fetch(`${API_BASE_URL}/api/shifts`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -100,6 +117,7 @@ export async function updateShift(
 
     const response = await fetch(`${API_BASE_URL}/api/shifts/${shift.id}`, {
         method: "PUT",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -124,6 +142,7 @@ export async function updateShift(
 export async function deleteShiftFromApi(id: number): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/shifts/${id}`, {
         method: "DELETE",
+        credentials: "include",
     });
 
     if (!response.ok) {

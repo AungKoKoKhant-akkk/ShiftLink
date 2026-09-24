@@ -8,7 +8,7 @@ import {isActiveEmployee} from "@/lib/employees";
 import {useShiftLink} from "@/components/providers/ShiftLinkProvider";
 import Link from "next/link";
 export default function Home() {
-    const { employees, shifts, swapRequests, currentEmployee } = useShiftLink();
+    const { employees, shifts, swapRequests } = useShiftLink();
 
     const activeEmployees = employees.filter(isActiveEmployee);
     const studentEmployees = activeEmployees.filter(
@@ -38,20 +38,6 @@ export default function Home() {
         shift.date.startsWith(currentMonth)
     );
 
-    const currentEmployeeShifts = shifts.filter(
-        (shift) => shift.employee === currentEmployee.name
-    );
-
-    const currentStudentHours = calculateMaximumRollingSevenDayHours(
-        currentEmployeeShifts
-    );
-
-    const remainingHours = Math.max(
-        STUDENT_HOUR_LIMIT - currentStudentHours,
-        0
-    );
-
-    const isNearLimit = currentStudentHours >= STUDENT_HOUR_WARNING;
     const openSwapRequests = swapRequests.filter(
         (request) => request.status === "Pending"
     );

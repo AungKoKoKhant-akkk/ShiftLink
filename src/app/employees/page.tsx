@@ -11,13 +11,14 @@ import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function EmployeesPage() {
     const [searchText, setSearchText] = useState("");
     const [selectedType, setSelectedType] = useState("All Types");
     const [selectedStatus, setSelectedStatus] = useState("All");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const { employees, saveEmployee, deleteEmployee } = useShiftLink();
+    const { employees, saveEmployee, deleteEmployee, currentRole } = useShiftLink();
     const { confirm, notify } = useFeedback();
     const [newEmployee, setNewEmployee] = useState<EmployeeFormData>(createEmployeeForm);
     const [editingEmployeeCode, setEditingEmployeeCode] = useState<string | null>(null);
@@ -103,6 +104,7 @@ export default function EmployeesPage() {
             code: employee.code,
             type: employee.type,
             department: employee.department,
+        role: employee.role,
         });
 
         setEditingEmployeeCode(code);
@@ -122,6 +124,10 @@ export default function EmployeesPage() {
         }
 
         setNewEmployee({ ...newEmployee, type: value });
+    }
+
+    if (currentRole !== "Admin") {
+        return <RoleGuard allowedRoles={["Admin"]}>{null}</RoleGuard>;
     }
 
     return (
@@ -264,6 +270,19 @@ export default function EmployeesPage() {
                                 />
                             </label>
 
+                            <label className="form-control">
+                                <span className="label-text mb-2">System Role</span>
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={newEmployee.role}
+                                    onChange={(event) => setNewEmployee({ ...newEmployee, role: event.target.value as EmployeeFormData["role"] })}
+                                >
+                                    <option value="User">User</option>
+                                    <option value="Manager">Manager</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </label>
+
                             <div className="modal-action">
                                 <button
                                     type="button"
@@ -289,3 +308,4 @@ export default function EmployeesPage() {
         </>
     );
 }
+
