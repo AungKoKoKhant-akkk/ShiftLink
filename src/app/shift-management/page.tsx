@@ -8,7 +8,7 @@ import type { ShiftFormData } from "@/types/shift";
 import {  calculateWorkingHours } from "@/lib/shiftCalculator";
 import RecordActions from "@/components/RecordActions";
 import { createShiftForm } from "@/lib/forms";
-import { isActiveEmployee } from "@/lib/employees";
+import { isAssignableEmployee } from "@/lib/employees";
 import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
@@ -23,7 +23,7 @@ export default function ShiftManagementPage() {
 
     const [newShift, setNewShift] = useState<ShiftFormData>(createShiftForm);
 
-    const activeEmployees = employees.filter(isActiveEmployee);
+    const activeEmployees = employees.filter(isAssignableEmployee);
 
     function resetNewShift() {
         setNewShift(createShiftForm());

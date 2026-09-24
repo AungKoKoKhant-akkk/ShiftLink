@@ -13,4 +13,4 @@ export interface Employee {
     role: UserRole;
 }
 
-export type EmployeeFormData = Omit<Employee, "id" | "status">;
+export type EmployeeFormData = Omit<Employee, "id" | "status"> & { password: string };

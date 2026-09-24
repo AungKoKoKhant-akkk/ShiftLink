@@ -2,7 +2,7 @@ import type { EmployeeFormData } from "@/types/employee";
 import type { ShiftFormData } from "@/types/shift";
 
 export function createEmployeeForm(): EmployeeFormData {
-    return { code: "", name: "", type: "Student", department: "", role: "User" };
+    return { code: "", name: "", type: "Student", department: "", role: "User", password: "" };
 }
 
 export function createShiftForm(): ShiftFormData {

@@ -24,7 +24,7 @@ function toFrontendEmployee(employee: ApiEmployee): Employee {
     };
 }
 
-function toApiEmployee(employee: Employee) {
+function toApiEmployee(employee: Employee & { password?: string }) {
     return {
         employeeCode: employee.code,
         name: employee.name,
@@ -32,6 +32,7 @@ function toApiEmployee(employee: Employee) {
         department: employee.department,
         status: employee.status === "Active" ? "ACTIVE" : "INACTIVE",
         role: employee.role.toUpperCase(),
+        ...(employee.password?.trim() ? { password: employee.password } : {}),
     };
 }
 
@@ -46,13 +47,13 @@ export async function getEmployees(): Promise<Employee[]> {
     return (await response.json() as ApiEmployee[]).map(toFrontendEmployee);
 }
 
-export async function createEmployee(employee: Employee): Promise<Employee> {
+export async function createEmployee(employee: Employee & { password?: string }): Promise<Employee> {
     const response = await fetch(`${API_BASE_URL}/api/employees`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toApiEmployee(employee)) });
     if (!response.ok) throw new Error(await getErrorMessage(response));
     return toFrontendEmployee(await response.json());
 }
 
-export async function updateEmployee(employee: Employee): Promise<Employee> {
+export async function updateEmployee(employee: Employee & { password?: string }): Promise<Employee> {
     if (!employee.id) throw new Error("Employee ID is missing.");
     const response = await fetch(`${API_BASE_URL}/api/employees/${employee.id}`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toApiEmployee(employee)) });
     if (!response.ok) throw new Error(await getErrorMessage(response));

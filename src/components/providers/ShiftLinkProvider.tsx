@@ -84,6 +84,34 @@ export function ShiftLinkProvider({ children }: { children: ReactNode }) {
         return () => { active = false; };
     }, [currentRole, currentUser, isLoadingAuth]);
 
+    useEffect(() => {
+        if (isLoadingAuth || !currentUser) return;
+
+        let active = true;
+        const refreshSwapRequests = async () => {
+            try {
+                const requests = currentRole === "User"
+                    ? await getMySwapRequests()
+                    : await getSwapRequests();
+                if (active) setSwapRequests(requests);
+            } catch {
+                // Keep the last successful result while a background refresh fails.
+            }
+        };
+
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === "visible") void refreshSwapRequests();
+        };
+
+        const intervalId = window.setInterval(refreshSwapRequests, 10_000);
+        document.addEventListener("visibilitychange", refreshWhenVisible);
+
+        return () => {
+            active = false;
+            window.clearInterval(intervalId);
+            document.removeEventListener("visibilitychange", refreshWhenVisible);
+        };
+    }, [currentRole, currentUser, isLoadingAuth]);
     const login = useCallback(async (employeeCode: string, password: string) => {
         const user = await loginWithApi(employeeCode, password);
         clearProtectedState();

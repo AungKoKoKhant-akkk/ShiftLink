@@ -47,7 +47,8 @@ export default function EmployeesPage() {
         if (
             !employeeData.name ||
             !employeeData.code ||
-            !employeeData.department
+            !employeeData.department ||
+            (!editingEmployeeCode && !employeeData.password)
         ) {
             notify("Please fill in all fields.", "error");
             return;
@@ -104,7 +105,8 @@ export default function EmployeesPage() {
             code: employee.code,
             type: employee.type,
             department: employee.department,
-        role: employee.role,
+            role: employee.role,
+            password: "",
         });
 
         setEditingEmployeeCode(code);
@@ -267,6 +269,17 @@ export default function EmployeesPage() {
                                     placeholder="Example: Restaurant Service"
                                     value={newEmployee.department}
                                     onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
+                                />
+                            </label>
+
+                            <label className="form-control">
+                                <span className="label-text mb-2">Initial Password</span>
+                                <input
+                                    type="password"
+                                    className="input input-bordered w-full"
+                                    placeholder={editingEmployeeCode ? "Leave blank to keep the current password" : "Set an initial password"}
+                                    value={newEmployee.password}
+                                    onChange={(event) => setNewEmployee({ ...newEmployee, password: event.target.value })}
                                 />
                             </label>
 

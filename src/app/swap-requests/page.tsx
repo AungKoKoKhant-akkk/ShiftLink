@@ -5,7 +5,7 @@ import StatusBadge from "@/components/StatusBadge";
 import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
-import { isActiveEmployee } from "@/lib/employees";
+import { isAssignableEmployee } from "@/lib/employees";
 import {CircleAlert} from "lucide-react";
 import RoleGuard from "@/components/RoleGuard";
 
@@ -29,7 +29,7 @@ export default function SwapRequestsPage() {
     const [processingRequestId, setProcessingRequestId] =
         useState<number | null>(null);
 
-    const availableEmployees = employees.filter(isActiveEmployee);
+    const availableEmployees = employees.filter(isAssignableEmployee);
     const pendingRequestCount = swapRequests.filter(
         (request) => request.status === "Pending"
     ).length;
