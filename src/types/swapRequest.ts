@@ -6,6 +6,8 @@ export interface SwapRequest {
     date: string;
     time: string;
     reason: string;
+    replacementEmployeeId?: number;
     replacementEmployee: string;
+    shiftId: number;
     status: SwapRequestStatus;
 }

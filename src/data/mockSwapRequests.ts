@@ -8,6 +8,7 @@ export const mockSwapRequests: SwapRequest[] = [
         time: "17:00 – 22:00",
         reason: "I have a school event.",
         replacementEmployee: "",
+        shiftId: 1,
         status: "Pending",
     },
     {
@@ -17,6 +18,7 @@ export const mockSwapRequests: SwapRequest[] = [
         time: "16:00 – 22:00",
         reason: "I need to attend a medical appointment.",
         replacementEmployee: "",
+        shiftId: 2,
         status: "Pending",
     },
 ];

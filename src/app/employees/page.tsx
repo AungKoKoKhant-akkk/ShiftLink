@@ -35,13 +35,14 @@ export default function EmployeesPage() {
         return matchesSearch && matchesType && matchesStatus;
     });
 
-    function handleSaveEmployee() {
+    async function handleSaveEmployee() {
         const employeeData = {
             ...newEmployee,
             name: newEmployee.name.trim(),
             code: newEmployee.code.trim(),
             department: newEmployee.department.trim(),
         };
+
         if (
             !employeeData.name ||
             !employeeData.code ||
@@ -51,30 +52,41 @@ export default function EmployeesPage() {
             return;
         }
 
-        const isDuplicateCode = employees.some(
-            (employee) =>
-                employee.code.toLowerCase() === employeeData.code.toLowerCase() &&
-                employee.code !== editingEmployeeCode
-        );
+        try {
+            await saveEmployee(employeeData, editingEmployeeCode ?? undefined);
 
-        if (isDuplicateCode) {
-            notify("Employee code already exists.", "error");
-            return;
+            setNewEmployee(createEmployeeForm());
+            setEditingEmployeeCode(null);
+            setIsAddModalOpen(false);
+
+            notify(
+                editingEmployeeCode
+                    ? "Employee updated."
+                    : "Employee added."
+            );
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to save employee.";
+
+            notify(message, "error");
         }
-
-        saveEmployee(employeeData, editingEmployeeCode ?? undefined);
-
-        setNewEmployee(createEmployeeForm());
-
-        setEditingEmployeeCode(null);
-        setIsAddModalOpen(false);
-        notify(editingEmployeeCode ? "Employee updated." : "Employee added.");
     }
 
     async function handleDeleteEmployee(code: string) {
-        if (await confirm("Are you sure you want to delete this employee?")) {
-            deleteEmployee(code);
+        if (!await confirm("Are you sure you want to delete this employee?")) {
+            return;
+        }
+
+        try {
+            await deleteEmployee(code);
             notify("Employee deleted.");
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to delete employee.";
+
+            notify(message, "error");
         }
     }
 

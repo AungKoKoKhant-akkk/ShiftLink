@@ -1,7 +1,7 @@
 "use client";
 
 import StatusBadge from "@/components/StatusBadge";
-import { useMemo, useState } from "react";
+import {  useState } from "react";
 import { Repeat2 } from "lucide-react";
 import type { Shift } from "@/types/shift";
 import Modal from "@/components/Modal";
@@ -12,35 +12,83 @@ import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 
 type MyShift = Shift & {
     day: string;
+    displayStatus: Shift["status"] | "Rejected";
 };
 
+
 export default function MySchedulePage() {
-    const { currentEmployee, requestSwap, shifts } = useShiftLink();
-    const { notify } = useFeedback();
+    const { shifts, swapRequests, currentEmployee, requestSwap, isLoadingShifts } = useShiftLink();
+    const {notify} = useFeedback();
+    const [isSubmitting , setIsSubmitting] = useState(false);
+
+
+    const latestSwapByShiftId = new Map<number, (typeof swapRequests)[number]>();
+
+    for (const request of swapRequests) {
+        if (!latestSwapByShiftId.has(request.shiftId)) {
+            latestSwapByShiftId.set(request.shiftId, request);
+        }
+    }
+
+    const myShifts: MyShift[] = shifts
+        .filter((shift) => shift.employee === currentEmployee.name)
+        .map((shift) => {
+            const latestSwap = latestSwapByShiftId.get(shift.id);
+
+            const displayStatus: MyShift["displayStatus"] =
+                latestSwap?.status === "Pending"
+                    ? "Swap Requested"
+                    : latestSwap?.status === "Rejected"
+                        ? "Rejected"
+                        : shift.status;
+
+            return {
+                ...shift,
+                day: getWeekdayName(shift.date),
+                displayStatus,
+            };
+        })
+        .sort(
+            (a, b) =>
+                a.date.localeCompare(b.date) ||
+                a.time.localeCompare(b.time)
+        );
+
+
+
+
     const [selectedShift, setSelectedShift] =
         useState<MyShift | null>(null);
 
     const [swapReason, setSwapReason] = useState("");
 
-    const myShiftList = useMemo<MyShift[]>(() => shifts
-        .filter((shift) => shift.employee === currentEmployee.name)
-        .map((shift) => ({ ...shift, day: getWeekdayName(shift.date) })), [currentEmployee.name, shifts]);
 
-    function handleSubmitSwapRequest() {
-        if (!selectedShift) {
-            return;
-        }
+    async function handleSubmitSwapRequest() {
+        if (!selectedShift || isSubmitting) return;
 
         if (!swapReason.trim()) {
             notify("Please enter a reason.", "error");
             return;
         }
 
-        requestSwap(selectedShift.id, swapReason.trim());
+        setIsSubmitting(true);
 
-        setSelectedShift(null);
-        setSwapReason("");
-        notify("Swap request submitted.");
+        try {
+            await requestSwap(selectedShift.id, swapReason.trim());
+
+            notify("Swap request submitted.");
+            setSelectedShift(null);
+            setSwapReason("");
+        } catch (error) {
+            notify(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to submit swap request.",
+                "error"
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -65,7 +113,25 @@ export default function MySchedulePage() {
                     </thead>
 
                     <tbody>
-                        {myShiftList.map((shift) => (
+
+                    {isLoadingShifts ? (
+                        <tr>
+                            <td colSpan={7} className="py-10 text-center">
+                                <span className="loading loading-spinner loading-sm" />
+                                <span className="ml-2">Loading shifts...</span>
+                            </td>
+                        </tr>
+                    ) : myShifts.length === 0 ? (
+                        <tr>
+                            <td colSpan={7} className="py-10 text-center text-base-content/60">
+                                No shifts scheduled.
+                            </td>
+                        </tr>
+                    ) : (
+                        myShifts.map((shift) => {
+                        
+
+                        return (
                             <tr key={shift.id}>
                                 <td>{shift.date}</td>
                                 <td>{shift.day}</td>
@@ -74,21 +140,25 @@ export default function MySchedulePage() {
                                 <td>{shift.hours} h</td>
 
                                 <td>
-                                    <StatusBadge status={shift.status} />
+                                    <StatusBadge status={shift.displayStatus} />
                                 </td>
 
                                 <td>
                                     <button
                                         className="btn btn-outline btn-primary btn-sm"
-                                        disabled={shift.status === "Swap Requested"}
+                                        disabled={shift.displayStatus === "Swap Requested"}
                                         onClick={() => setSelectedShift(shift)}
                                     >
                                         <Repeat2 size={16} />
-                                        Request Swap
+                                        {shift.displayStatus === "Rejected"
+                                            ? "Request Again"
+                                            : "Request Swap"}
                                     </button>
                                 </td>
                             </tr>
-                        ))}
+                        );
+                        })
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -133,6 +203,7 @@ export default function MySchedulePage() {
                     <div className="modal-action mt-7">
                         <button
                             className="btn"
+                            disabled={isSubmitting}
                             onClick={() => {
                                 setSelectedShift(null);
                                 setSwapReason("");
@@ -143,9 +214,10 @@ export default function MySchedulePage() {
 
                         <button
                             className="btn btn-primary"
+                            disabled={isSubmitting}
                             onClick={handleSubmitSwapRequest}
                         >
-                            Submit Request
+                            {isSubmitting ? "Submitting..." : "Submit Request"}
                         </button>
                     </div>
                 </Modal>

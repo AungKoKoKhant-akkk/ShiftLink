@@ -5,11 +5,10 @@ import EmployeeTypeBadge from "@/components/EmployeeTypeBadge";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { ShiftFormData } from "@/types/shift";
-import { calculateMaxRollingSevenDayHours, calculateWorkingHours } from "@/lib/shiftCalculator";
+import {  calculateWorkingHours } from "@/lib/shiftCalculator";
 import RecordActions from "@/components/RecordActions";
 import { createShiftForm } from "@/lib/forms";
 import { isActiveEmployee } from "@/lib/employees";
-import { STUDENT_HOUR_LIMIT } from "@/lib/studentHours";
 import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
@@ -29,7 +28,7 @@ export default function ShiftManagementPage() {
         setNewShift(createShiftForm());
     }
 
-    function handleSaveShift() {
+    async function handleSaveShift() {
         if (
             !newShift.date ||
             !newShift.employee ||
@@ -41,8 +40,6 @@ export default function ShiftManagementPage() {
             return;
         }
 
-        const employeeType = newShift.type;
-
         const hours = calculateWorkingHours(
             newShift.startTime,
             newShift.endTime,
@@ -50,54 +47,53 @@ export default function ShiftManagementPage() {
         );
 
         if (!Number.isFinite(hours) || hours <= 0) {
-            notify("Break time must be non-negative and shorter than the shift duration.", "error");
-            return;
-        }
-
-        const shiftsToCheck = editingShiftId
-            ? shifts.filter((shift) => shift.id !== editingShiftId)
-            : shifts;
-
-        const studentShifts = shiftsToCheck.filter(
-            (shift) =>
-                shift.employee === newShift.employee &&
-                shift.type === "Student"
-        );
-
-        const maximumRollingHours = calculateMaxRollingSevenDayHours(
-            studentShifts,
-            newShift.date,
-            hours
-        );
-
-        if (newShift.type === "Student" && maximumRollingHours > STUDENT_HOUR_LIMIT) {
             notify(
-                `This student would work up to ${maximumRollingHours} hours in a 7-day period. The normal limit is ${STUDENT_HOUR_LIMIT} hours.`
-            , "error");
+                "Break time must be non-negative and shorter than the shift duration.",
+                "error"
+            );
             return;
         }
 
         const shiftData = {
             date: newShift.date,
             employee: newShift.employee,
-            type: employeeType,
+            type: newShift.type,
             time: `${newShift.startTime} – ${newShift.endTime}`,
             hours,
             breakMinutes: newShift.breakMinutes,
         };
 
-        saveShift(shiftData, editingShiftId ?? undefined);
+        try {
+            await saveShift(shiftData, editingShiftId ?? undefined);
 
-        resetNewShift();
-        setEditingShiftId(null);
-        setIsAddModalOpen(false);
-        notify(editingShiftId ? "Shift updated." : "Shift added.");
+            resetNewShift();
+            setEditingShiftId(null);
+            setIsAddModalOpen(false);
+
+            notify(editingShiftId ? "Shift updated." : "Shift added.");
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to save shift.";
+
+            notify(message, "error");
+        }
     }
 
     async function handleDeleteShift(id: number) {
-        if (await confirm("Are you sure you want to delete this shift?")) {
-            deleteShift(id);
+        if (!await confirm("Are you sure you want to delete this shift?")) {
+            return;
+        }
+
+        try {
+            await deleteShift(id);
             notify("Shift deleted.");
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to delete shift.";
+
+            notify(message, "error");
         }
     }
 
@@ -205,35 +201,44 @@ export default function ShiftManagementPage() {
                         <label className="form-control">
                             <span className="label-text mb-2">Employee</span>
 
-                            <select
-                                className="select select-bordered w-full"
-                                value={newShift.employee}
-                                onChange={(e) => {
-                                    const selectedEmployee = activeEmployees.find(
-                                        (employee) => employee.name === e.target.value
-                                    );
+                            {editingShiftId !== null ? (
+                                <input
+                                    type="text"
+                                    className="input input-bordered w-full"
+                                    value={newShift.employee}
+                                    disabled
+                                />
+                            ) : (
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={newShift.employee}
+                                    onChange={(e) => {
+                                        const selectedEmployee = activeEmployees.find(
+                                            (employee) => employee.name === e.target.value
+                                        );
 
-                                    if (!selectedEmployee) {
-                                        return;
-                                    }
+                                        if (!selectedEmployee) {
+                                            return;
+                                        }
 
-                                    setNewShift({
-                                        ...newShift,
-                                        employee: selectedEmployee.name,
-                                        type: selectedEmployee.type,
-                                    });
-                                }}
-                            >
-                                <option value="" disabled>
-                                    Select an employee
-                                </option>
-
-                                {activeEmployees.map((employee) => (
-                                    <option key={employee.code} value={employee.name}>
-                                        {employee.name}
+                                        setNewShift({
+                                            ...newShift,
+                                            employee: selectedEmployee.name,
+                                            type: selectedEmployee.type,
+                                        });
+                                    }}
+                                >
+                                    <option value="" disabled>
+                                        Select an employee
                                     </option>
-                                ))}
-                            </select>
+
+                                    {activeEmployees.map((employee) => (
+                                        <option key={employee.code} value={employee.name}>
+                                            {employee.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </label>
 
                         <label className="form-control">
