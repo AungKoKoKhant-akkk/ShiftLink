@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 type FeedbackContextValue = {
     notify: (message: string, tone?: "error" | "success") => void;
@@ -11,6 +12,7 @@ type FeedbackContextValue = {
 const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
+    const { t } = useLanguage();
     const [notice, setNotice] = useState<{ message: string; tone: "error" | "success" } | null>(null);
     const [confirmation, setConfirmation] = useState<{ message: string; resolve: (approved: boolean) => void } | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,11 +47,11 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             {confirmation && (
                 <div className="modal modal-open z-50" role="dialog" aria-modal="true" aria-labelledby="confirmation-title">
                     <div className="modal-box">
-                        <h2 id="confirmation-title" className="text-xl font-bold">Please confirm</h2>
+                        <h2 id="confirmation-title" className="text-xl font-bold">{t("pleaseConfirm")}</h2>
                         <p className="mt-3 text-base-content/70">{confirmation.message}</p>
                         <div className="modal-action">
-                            <button type="button" className="btn" onClick={() => closeConfirmation(false)}>Cancel</button>
-                            <button type="button" className="btn btn-error" onClick={() => closeConfirmation(true)}>Delete</button>
+                            <button type="button" className="btn" onClick={() => closeConfirmation(false)}>{t("cancel")}</button>
+                            <button type="button" className="btn btn-error" onClick={() => closeConfirmation(true)}>{t("delete")}</button>
                         </div>
                     </div>
                 </div>

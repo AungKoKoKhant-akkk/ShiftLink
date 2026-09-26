@@ -1,4 +1,7 @@
+"use client";
+
 import type { EmployeeType } from "@/types/employee";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const typeClasses: Record<EmployeeType, string> = {
     Student: "badge-info",
@@ -6,5 +9,6 @@ const typeClasses: Record<EmployeeType, string> = {
 };
 
 export default function EmployeeTypeBadge({ type }: { type: EmployeeType }) {
-    return <span className={`badge ${typeClasses[type]}`}>{type}</span>;
+    const { t } = useLanguage();
+    return <span className={`badge ${typeClasses[type]}`}>{t(type === "Student" ? "student" : "regular")}</span>;
 }

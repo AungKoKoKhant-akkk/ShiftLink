@@ -12,6 +12,7 @@ import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 import RoleGuard from "@/components/RoleGuard";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function EmployeesPage() {
     const [searchText, setSearchText] = useState("");
@@ -20,6 +21,7 @@ export default function EmployeesPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const { employees, saveEmployee, deleteEmployee, currentRole } = useShiftLink();
     const { confirm, notify } = useFeedback();
+    const { t } = useLanguage();
     const [newEmployee, setNewEmployee] = useState<EmployeeFormData>(createEmployeeForm);
     const [editingEmployeeCode, setEditingEmployeeCode] = useState<string | null>(null);
 
@@ -50,7 +52,7 @@ export default function EmployeesPage() {
             !employeeData.department ||
             (!editingEmployeeCode && !employeeData.password)
         ) {
-            notify("Please fill in all fields.", "error");
+            notify(t("fillAllFields"), "error");
             return;
         }
 
@@ -63,30 +65,30 @@ export default function EmployeesPage() {
 
             notify(
                 editingEmployeeCode
-                    ? "Employee updated."
-                    : "Employee added."
+                    ? t("employeeUpdated")
+                    : t("employeeAdded")
             );
         } catch (error) {
             const message = error instanceof Error
                 ? error.message
-                : "Failed to save employee.";
+                : t("employeeSaveFailed");
 
             notify(message, "error");
         }
     }
 
     async function handleDeleteEmployee(code: string) {
-        if (!await confirm("Are you sure you want to delete this employee?")) {
+        if (!await confirm(t("deleteEmployeeConfirm"))) {
             return;
         }
 
         try {
             await deleteEmployee(code);
-            notify("Employee deleted.");
+            notify(t("employeeDeleted"));
         } catch (error) {
             const message = error instanceof Error
                 ? error.message
-                : "Failed to delete employee.";
+                : t("employeeDeleteFailed");
 
             notify(message, "error");
         }
@@ -135,12 +137,12 @@ export default function EmployeesPage() {
     return (
         <>
             <PageHeader
-                title="Employees"
-                description="Manage employee profiles and work types."
+                title={t("employees")}
+                description={t("employeesDescription")}
                 action={
                     <button className="btn btn-primary" onClick={openAddModal}>
                         <Plus size={18} />
-                        Add Employee
+                        {t("addEmployee")}
                     </button>
                 }
             />
@@ -152,7 +154,7 @@ export default function EmployeesPage() {
                     <input
                         type="text"
                         className="grow"
-                        placeholder="Search by name or employee code"
+                        placeholder={t("searchEmployee")}
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
@@ -162,18 +164,18 @@ export default function EmployeesPage() {
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
                 >
-                    <option>All Types</option>
-                    <option>Student</option>
-                    <option>Regular</option>
+                    <option value="All Types">{t("allTypes")}</option>
+                    <option value="Student">{t("student")}</option>
+                    <option value="Regular">{t("regular")}</option>
                 </select>
 
                 <select className="select select-bordered"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                 >
-                    <option>All</option>
-                    <option>Active</option>
-                    <option>Inactive</option>
+                    <option value="All">{t("all")}</option>
+                    <option value="Active">{t("active")}</option>
+                    <option value="Inactive">{t("inactive")}</option>
                 </select>
             </div>
 
@@ -181,12 +183,8 @@ export default function EmployeesPage() {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
-                            <th>Employee Code</th>
-                            <th>Type</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{t("employee")}</th><th>{t("employeeCode")}</th><th>{t("type")}</th>
+                            <th>{t("department")}</th><th>{t("status")}</th><th>{t("actions")}</th>
                         </tr>
                     </thead>
 
@@ -217,16 +215,16 @@ export default function EmployeesPage() {
                 {isAddModalOpen && (
                     <Modal>
                         <h2 className="text-xl font-bold">
-                            {editingEmployeeCode ? "Edit Employee" : "Add Employee"}
+                            {editingEmployeeCode ? t("editEmployee") : t("addEmployee")}
                         </h2>
                         <form className="mt-6 space-y-4  ">
                             <label className="form-control">
-                                <span className="label-text mb-2">Employee Name</span>
+                                <span className="label-text mb-2">{t("employeeName")}</span>
 
                                 <input
                                     type="text"
                                     className="input input-bordered w-full"
-                                    placeholder="Enter employee name"
+                                    placeholder={t("enterEmployeeName")}
                                     value={newEmployee.name}
                                     onChange={(e) =>
                                         setNewEmployee({ ...newEmployee, name: e.target.value })
@@ -236,63 +234,63 @@ export default function EmployeesPage() {
 
                             <div className="grid gap-4 sm:grid-cols-2 my-2 ">
                                 <label className="form-control py-3">
-                                    <span className="label-text mb-2">Employee Code</span>
+                                    <span className="label-text mb-2">{t("employeeCode")}</span>
 
                                     <input
                                         type="text"
                                         className="input input-bordered w-full"
-                                        placeholder="Example: STU001"
+                                        placeholder={t("employeeCodeExample")}
                                         value={newEmployee.code}
                                         onChange={(e) => setNewEmployee({ ...newEmployee, code: e.target.value })}
                                     />
                                 </label>
 
                                 <label className="form-control py-3">
-                                    <span className="label-text mb-2">Employee Type</span>
+                                    <span className="label-text mb-2">{t("employeeType")}</span>
 
                                     <select className="select select-bordered w-full"
                                         value={newEmployee.type}
                                         onChange={(e) => handleEmployeeTypeChange(e.target.value)}
                                     >
-                                        <option>Student</option>
-                                        <option>Regular</option>
+                                        <option value="Student">{t("student")}</option>
+                                        <option value="Regular">{t("regular")}</option>
                                     </select>
                                 </label>
                             </div>
 
                             <label className="form-control">
-                                <span className="label-text mb-2">Department</span>
+                                <span className="label-text mb-2">{t("department")}</span>
 
                                 <input
                                     type="text"
                                     className="input input-bordered w-full"
-                                    placeholder="Example: Restaurant Service"
+                                    placeholder={t("departmentExample")}
                                     value={newEmployee.department}
                                     onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
                                 />
                             </label>
 
                             <label className="form-control">
-                                <span className="label-text mb-2">Initial Password</span>
+                                <span className="label-text mb-2">{t("initialPassword")}</span>
                                 <input
                                     type="password"
                                     className="input input-bordered w-full"
-                                    placeholder={editingEmployeeCode ? "Leave blank to keep the current password" : "Set an initial password"}
+                                    placeholder={editingEmployeeCode ? t("keepCurrentPassword") : t("setInitialPassword")}
                                     value={newEmployee.password}
                                     onChange={(event) => setNewEmployee({ ...newEmployee, password: event.target.value })}
                                 />
                             </label>
 
                             <label className="form-control">
-                                <span className="label-text mb-2">System Role</span>
+                                <span className="label-text mb-2">{t("systemRole")}</span>
                                 <select
                                     className="select select-bordered w-full"
                                     value={newEmployee.role}
                                     onChange={(event) => setNewEmployee({ ...newEmployee, role: event.target.value as EmployeeFormData["role"] })}
                                 >
-                                    <option value="User">User</option>
-                                    <option value="Manager">Manager</option>
-                                    <option value="Admin">Admin</option>
+                                    <option value="User">{t("user")}</option>
+                                    <option value="Manager">{t("manager")}</option>
+                                    <option value="Admin">{t("admin")}</option>
                                 </select>
                             </label>
 
@@ -302,7 +300,7 @@ export default function EmployeesPage() {
                                     className="btn"
                                     onClick={() => setIsAddModalOpen(false)}
                                 >
-                                    Cancel
+                                    {t("cancel")}
                                 </button>
 
                                 <button type="button"
@@ -310,7 +308,7 @@ export default function EmployeesPage() {
                                     onClick={handleSaveEmployee}
 
                                 >
-                                    {editingEmployeeCode ? "Update Employee" : "Save Employee"}
+                                    {editingEmployeeCode ? t("updateEmployee") : t("saveEmployee")}
                                 </button>
                             </div>
                         </form>

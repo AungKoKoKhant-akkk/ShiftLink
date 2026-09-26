@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from "@/lib/api/config";
 import {SwapRequest} from "@/types/swapRequest";
 
 type ApiSwapRequest = {
@@ -14,7 +15,7 @@ type ApiSwapRequest = {
     requestedAt: string;
 };
 
-const API_URL = "http://localhost:8080/api/swap-requests";
+const API_URL = `${getApiBaseUrl()}/api/swap-requests`;
 
 function toFrontendStatus(
     status: ApiSwapRequest["status"]

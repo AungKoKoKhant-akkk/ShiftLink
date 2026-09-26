@@ -7,9 +7,11 @@ import PageHeader from "@/components/PageHeader";
 import { calculateMaximumRollingSevenDayHours } from "@/lib/shiftCalculator";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 import RoleGuard from "@/components/RoleGuard";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function StudentHoursPage() {
     const { employees, shifts } = useShiftLink();
+    const { t } = useLanguage();
 
     const studentHours = employees
         .filter(
@@ -37,21 +39,21 @@ export default function StudentHoursPage() {
                 </>
             </RoleGuard>
             <PageHeader
-                title="Student Hours"
-                description="Monitor student work hours for the 28-hour rule."
+                title={t("studentHours")}
+                description={t("studentHoursDescription")}
             />
 
             <div className="mt-8 flex flex-col justify-between gap-3 rounded-box bg-base-100 p-4 shadow sm:flex-row sm:items-center">
                 <div>
-                    <h2 className="font-bold">Current monitoring period</h2>
+                    <h2 className="font-bold">{t("currentMonitoringPeriod")}</h2>
 
                     <p className="text-sm text-base-content/60">
-                        Rolling 7-day work-hour calculation
+                        {t("rollingSevenDays")}
                     </p>
                 </div>
 
                 <span className="badge badge-primary badge-outline">
-                    Limit: {STUDENT_HOUR_LIMIT} hours
+                    {t("limitHours", { hours: STUDENT_HOUR_LIMIT })}
                 </span>
             </div>
             <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -78,7 +80,7 @@ export default function StudentHoursPage() {
                                 <div className="mt-5">
                                     <p className="text-3xl font-bold">
                                         {student.hours}
-                                        <span className="text-base font-normal"> / {STUDENT_HOUR_LIMIT} h</span>
+                                        <span className="text-base font-normal"> / {STUDENT_HOUR_LIMIT} {t("hoursShort")}</span>
                                     </p>
 
                                     <progress
@@ -93,7 +95,7 @@ export default function StudentHoursPage() {
                                     />
 
                                     <p className="mt-2 text-sm text-base-content/60">
-                                        {Math.max(STUDENT_HOUR_LIMIT - student.hours, 0).toFixed(1)} hours remaining
+                                        {t("hoursRemaining", { hours: Math.max(STUDENT_HOUR_LIMIT - student.hours, 0).toFixed(1) })}
                                     </p>
 
                                 </div>

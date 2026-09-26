@@ -6,9 +6,9 @@ import { Repeat2 } from "lucide-react";
 import type { Shift } from "@/types/shift";
 import Modal from "@/components/Modal";
 import PageHeader from "@/components/PageHeader";
-import { getWeekdayName } from "@/lib/date";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 type MyShift = Shift & {
     day: string;
@@ -19,6 +19,7 @@ type MyShift = Shift & {
 export default function MySchedulePage() {
     const { shifts, swapRequests, currentUser, requestSwap, isLoadingShifts } = useShiftLink();
     const {notify} = useFeedback();
+    const { language, t } = useLanguage();
     const [isSubmitting , setIsSubmitting] = useState(false);
 
 
@@ -44,7 +45,7 @@ export default function MySchedulePage() {
 
             return {
                 ...shift,
-                day: getWeekdayName(shift.date),
+                day: new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-US", { weekday: "long", timeZone: "UTC" }).format(new Date(`${shift.date}T00:00:00Z`)),
                 displayStatus,
             };
         })
@@ -67,7 +68,7 @@ export default function MySchedulePage() {
         if (!selectedShift || isSubmitting) return;
 
         if (!swapReason.trim()) {
-            notify("Please enter a reason.", "error");
+            notify(t("enterReason"), "error");
             return;
         }
 
@@ -76,14 +77,14 @@ export default function MySchedulePage() {
         try {
             await requestSwap(selectedShift.id, swapReason.trim());
 
-            notify("Swap request submitted.");
+            notify(t("swapSubmitted"));
             setSelectedShift(null);
             setSwapReason("");
         } catch (error) {
             notify(
                 error instanceof Error
                     ? error.message
-                    : "Failed to submit swap request.",
+                    : t("swapSubmitFailed"),
                 "error"
             );
         } finally {
@@ -94,21 +95,16 @@ export default function MySchedulePage() {
     return (
         <>
             <PageHeader
-                title="My Schedule"
-                description="View your upcoming shifts and working hours."
+                title={t("mySchedule")}
+                description={t("myScheduleDescription")}
             />
 
             <div className="mt-8 overflow-x-auto rounded-box bg-base-100 shadow">
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Day</th>
-                            <th>Shift Time</th>
-                            <th>Break</th>
-                            <th>Working Hours</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>{t("date")}</th><th>{t("day")}</th><th>{t("shiftTime")}</th>
+                            <th>{t("break")}</th><th>{t("workingHours")}</th><th>{t("status")}</th><th>{t("action")}</th>
                         </tr>
                     </thead>
 
@@ -118,13 +114,13 @@ export default function MySchedulePage() {
                         <tr>
                             <td colSpan={7} className="py-10 text-center">
                                 <span className="loading loading-spinner loading-sm" />
-                                <span className="ml-2">Loading shifts...</span>
+                                <span className="ml-2">{t("loadingShifts")}</span>
                             </td>
                         </tr>
                     ) : myShifts.length === 0 ? (
                         <tr>
                             <td colSpan={7} className="py-10 text-center text-base-content/60">
-                                No shifts scheduled.
+                                {t("noShiftsScheduled")}
                             </td>
                         </tr>
                     ) : (
@@ -136,8 +132,8 @@ export default function MySchedulePage() {
                                 <td>{shift.date}</td>
                                 <td>{shift.day}</td>
                                 <td className="font-medium">{shift.time}</td>
-                                <td>{shift.breakMinutes} min</td>
-                                <td>{shift.hours} h</td>
+                                <td>{shift.breakMinutes} {t("minutesShort")}</td>
+                                <td>{shift.hours} {t("hoursShort")}</td>
 
                                 <td>
                                     <StatusBadge status={shift.displayStatus} />
@@ -151,8 +147,8 @@ export default function MySchedulePage() {
                                     >
                                         <Repeat2 size={16} />
                                         {shift.displayStatus === "Rejected"
-                                            ? "Request Again"
-                                            : "Request Swap"}
+                                            ? t("requestAgain")
+                                            : t("requestSwap")}
                                     </button>
                                 </td>
                             </tr>
@@ -165,10 +161,10 @@ export default function MySchedulePage() {
 
             {selectedShift && (
                 <Modal className="max-w-xl p-7">
-                    <h2 className="text-2xl font-bold">Request Shift Swap</h2>
+                    <h2 className="text-2xl font-bold">{t("requestShiftSwap")}</h2>
 
                     <p className="mt-1 text-sm text-base-content/60">
-                        Send a request to your manager for approval.
+                        {t("sendManagerApproval")}
                     </p>
 
                     <div className="mt-6 rounded-box border border-base-300 bg-base-200 p-4">
@@ -179,7 +175,7 @@ export default function MySchedulePage() {
                         </p>
 
                         <p className="mt-2 text-sm text-base-content/70">
-                            Working hours: {selectedShift.hours} h
+                            {t("workingHours")}: {selectedShift.hours} {t("hoursShort")}
                         </p>
                     </div>
 
@@ -188,13 +184,13 @@ export default function MySchedulePage() {
                             htmlFor="swap-reason"
                             className="mb-2 block text-sm font-medium"
                         >
-                            Reason
+                            {t("reason")}
                         </label>
 
                         <textarea
                             id="swap-reason"
                             className="textarea textarea-bordered h-28 w-full"
-                            placeholder="Example: I have a school event."
+                            placeholder={t("reasonPlaceholder")}
                             value={swapReason}
                             onChange={(e) => setSwapReason(e.target.value)}
                         />
@@ -209,7 +205,7 @@ export default function MySchedulePage() {
                                 setSwapReason("");
                             }}
                         >
-                            Cancel
+                            {t("cancel")}
                         </button>
 
                         <button
@@ -217,7 +213,7 @@ export default function MySchedulePage() {
                             disabled={isSubmitting}
                             onClick={handleSubmitSwapRequest}
                         >
-                            {isSubmitting ? "Submitting..." : "Submit Request"}
+                            {isSubmitting ? t("submitting") : t("submitRequest")}
                         </button>
                     </div>
                 </Modal>

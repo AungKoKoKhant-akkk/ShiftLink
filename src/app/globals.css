@@ -12,4 +12,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html[lang="ja"] body {
+  font-family: "Yu Gothic", "YuGothic", "Meiryo", var(--font-geist-sans), sans-serif;
+}
 

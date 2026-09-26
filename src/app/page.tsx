@@ -7,8 +7,10 @@ import {calculateMaximumRollingSevenDayHours} from "@/lib/shiftCalculator";
 import {isActiveEmployee} from "@/lib/employees";
 import {useShiftLink} from "@/components/providers/ShiftLinkProvider";
 import Link from "next/link";
+import {useLanguage} from "@/components/providers/LanguageProvider";
 export default function Home() {
     const { employees, shifts, swapRequests } = useShiftLink();
+    const { t } = useLanguage();
 
     const activeEmployees = employees.filter(isActiveEmployee);
     const studentEmployees = activeEmployees.filter(
@@ -44,27 +46,27 @@ export default function Home() {
 
     const stats = [
         {
-            title: "Total Employees",
+            title: t("totalEmployees"),
             value: activeEmployees.length,
-            description: "Active employees",
+            description: t("activeEmployees"),
             color: "text-primary",
         },
         {
-            title: "Student Employees",
+            title: t("studentEmployees"),
             value: studentEmployees.length,
-            description: "28-hour tracking enabled",
+            description: t("trackingEnabled"),
             color: "text-info",
         },
         {
-            title: "This Month Shifts",
+            title: t("thisMonthShifts"),
             value: thisMonthShifts.length,
             description: currentMonth,
             color: "text-secondary",
         },
         {
-            title: "Open Swap Requests",
+            title: t("openSwapRequests"),
             value: openSwapRequests.length,
-            description: "Manager approval needed",
+            description: t("approvalNeeded"),
             color: "text-warning",
         },
     ];
@@ -72,12 +74,12 @@ export default function Home() {
     return (
         <>
             <PageHeader
-                title="Dashboard"
-                description="Welcome to ShiftLink"
+                title={t("dashboard")}
+                description={t("welcome")}
                 action={
                     <button className="btn btn-primary">
                         <Plus size={18} />
-                        Add Shift
+                        {t("addShift")}
                     </button>
                 }
             />
@@ -99,7 +101,7 @@ export default function Home() {
             <div className="mt-8 grid items-start gap-6 xl:grid-cols-3">
                 <section className="card bg-base-100 shadow xl:col-span-2">
                     <div className="card-body">
-                        <h2 className="card-title">Shift Overview</h2>
+                        <h2 className="card-title">{t("shiftOverview")}</h2>
                         <ShiftCalendar />
                     </div>
                 </section>
@@ -108,9 +110,9 @@ export default function Home() {
                     <div className="rounded-box bg-base-100 p-6 shadow">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-xl font-bold">Student Hours Alerts</h2>
+                                <h2 className="text-xl font-bold">{t("studentHoursAlerts")}</h2>
                                 <p className="mt-1 text-sm text-base-content/60">
-                                    Students near the 28-hour limit
+                                    {t("studentsNearLimit")}
                                 </p>
                             </div>
 
@@ -121,7 +123,7 @@ export default function Home() {
 
                         {studentHourAlerts.length === 0 ? (
                             <p className="mt-6 text-sm text-base-content/60">
-                                No students are near the weekly limit.
+                                {t("noStudentsNearLimit")}
                             </p>
                         ) : (
                             <div className="mt-5 space-y-4">
@@ -149,8 +151,8 @@ export default function Home() {
 
                                             <p className="mt-1 text-sm text-base-content/60">
                                                 {isOverLimit
-                                                    ? "Weekly limit exceeded"
-                                                    : `${remainingHours.toFixed(1)} hours remaining`}
+                                                    ? t("weeklyLimitExceeded")
+                                                    : t("hoursRemaining", { hours: remainingHours.toFixed(1) })}
                                             </p>
                                         </div>
                                     );
@@ -162,7 +164,7 @@ export default function Home() {
                             href="/student-hours"
                             className="btn btn-outline btn-primary btn-sm mt-6 w-full"
                         >
-                            View all student hours
+                            {t("viewAllStudentHours")}
                         </Link>
                     </div>
                 </aside>

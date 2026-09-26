@@ -8,10 +8,12 @@ import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 import { isAssignableEmployee } from "@/lib/employees";
 import {CircleAlert} from "lucide-react";
 import RoleGuard from "@/components/RoleGuard";
+import { useLanguage, type TranslationKey } from "@/components/providers/LanguageProvider";
 
 export default function SwapRequestsPage() {
     const { employees, swapRequests, updateSwapRequest } = useShiftLink();
     const { notify } = useFeedback();
+    const { t } = useLanguage();
     const {
         // existing values
         isLoadingSwapRequests,
@@ -54,7 +56,7 @@ export default function SwapRequestsPage() {
         replacementEmployeeId?: number
     ) {
         if (!replacementEmployeeId) {
-            notify("Please select a replacement employee first.", "error");
+            notify(t("selectReplacementFirst"), "error");
             return;
         }
 
@@ -62,10 +64,10 @@ export default function SwapRequestsPage() {
 
         try {
             await updateSwapRequest(id, { status: "Approved", replacementEmployeeId });
-            notify("Swap request approved.");
+            notify(t("swapApproved"));
         } catch (error) {
             notify(
-                error instanceof Error ? error.message : "Failed to approve swap request.",
+                error instanceof Error ? error.message : t("swapApproveFailed"),
                 "error"
             );
         } finally {
@@ -77,9 +79,9 @@ export default function SwapRequestsPage() {
         setProcessingRequestId(id);
         try {
             await updateSwapRequest(id, { status: "Rejected" });
-            notify("Swap request rejected.");
+            notify(t("swapRejected"));
         } catch (error) {
-            notify(error instanceof Error ? error.message : "Failed to reject swap request.", "error");
+            notify(error instanceof Error ? error.message : t("swapRejectFailed"), "error");
         } finally {
             setProcessingRequestId(null);
         }
@@ -93,8 +95,8 @@ export default function SwapRequestsPage() {
                 </>
             </RoleGuard>
             <PageHeader
-                title="Swap Requests"
-                description="Review and manage employee shift swap requests."
+                title={t("swapRequests")}
+                description={t("swapRequestsDescription")}
             />
 
             {pendingRequestCount > 0 && (
@@ -104,12 +106,11 @@ export default function SwapRequestsPage() {
 
                         <div>
                             <p className="font-bold text-base-content">
-                                {pendingRequestCount} pending swap request
-                                {pendingRequestCount > 1 ? "s" : ""}
+                                {t(pendingRequestCount === 1 ? "pendingRequest" : "pendingRequests", { count: pendingRequestCount })}
                             </p>
 
                             <p className="text-sm text-base-content/70">
-                                Review and approve or reject it.
+                                {t("reviewRequest")}
                             </p>
                         </div>
                     </div>
@@ -118,7 +119,7 @@ export default function SwapRequestsPage() {
                         className="btn btn-warning btn-sm"
                         onClick={() => setStatusFilter("Pending")}
                     >
-                        Review now
+                        {t("reviewNow")}
                     </button>
                 </div>
             )}
@@ -133,7 +134,7 @@ export default function SwapRequestsPage() {
                             }`}
                             onClick={() => setStatusFilter(status)}
                         >
-                            {status}
+                            {t(status.toLowerCase() as TranslationKey)}
                         </button>
                     )
                 )}
@@ -143,12 +144,8 @@ export default function SwapRequestsPage() {
                 <table className="table min-w-[1050px]">
                     <thead>
                     <tr>
-                        <th>Employee</th>
-                        <th>Shift</th>
-                        <th>Reason</th>
-                        <th>Replacement Employee</th>
-                        <th>Status</th>
-                        <th>Manager Action</th>
+                        <th>{t("employee")}</th><th>{t("shiftTime")}</th><th>{t("reason")}</th>
+                        <th>{t("replacementEmployee")}</th><th>{t("status")}</th><th>{t("managerAction")}</th>
                     </tr>
                     </thead>
 
@@ -157,7 +154,7 @@ export default function SwapRequestsPage() {
                         <tr>
                             <td colSpan={7} className="py-10 text-center">
                                 <span className="loading loading-spinner loading-sm" />
-                                <span className="ml-2">Loading swap requests...</span>
+                                <span className="ml-2">{t("loadingSwapRequests")}</span>
                             </td>
                         </tr>
                     ) :filteredSwapRequests.length === 0 ? (
@@ -166,9 +163,7 @@ export default function SwapRequestsPage() {
                                 colSpan={6}
                                 className="py-10 text-center text-base-content/60 "
                             >
-                                {statusFilter === "All"
-                                    ? "No swap requests yet."
-                                    : `No ${statusFilter.toLowerCase()} swap requests.`}
+                                {t("noSwapRequests", { status: t(statusFilter.toLowerCase() as TranslationKey) })}
                             </td>
                         </tr>
                     ) : (
@@ -208,7 +203,7 @@ export default function SwapRequestsPage() {
                                             }));
                                         }}
                                     >
-                                        <option value="">Select employee</option>
+                                        <option value="">{t("selectEmployee")}</option>
 
                                         {availableEmployees
                                             .filter(
@@ -241,14 +236,14 @@ export default function SwapRequestsPage() {
                                                 }
                                                 title={
                                                     !request.replacementEmployeeId
-                                                        ? "Select a replacement employee first."
+                                                        ? t("selectReplacementFirst")
                                                         : undefined
                                                 }
-                                                onClick={() => handleApproveRequest(request.id)}
+                                                onClick={() => handleApproveRequest(request.id, selectedReplacementId)}
                                             >
                                                 {processingRequestId === request.id
-                                                    ? "Processing..."
-                                                    : "Approve"}
+                                                    ? t("processing")
+                                                    : t("approve")}
                                             </button>
 
                                             <button
@@ -257,12 +252,12 @@ export default function SwapRequestsPage() {
                                                 onClick={() => handleRejectRequest(request.id)}
                                             >
                                                 {processingRequestId === request.id
-                                                    ? "Processing..."
-                                                    : "Reject"}
+                                                    ? t("processing")
+                                                    : t("reject")}
                                             </button>
                                         </div>
                                     ) : (
-                                        <span className="text-sm text-base-content/60">Completed</span>
+                                        <span className="text-sm text-base-content/60">{t("completed")}</span>
                                     )}
                                 </td>
                             </tr>

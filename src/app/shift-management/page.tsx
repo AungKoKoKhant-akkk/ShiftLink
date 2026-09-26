@@ -14,10 +14,12 @@ import PageHeader from "@/components/PageHeader";
 import { useFeedback } from "@/components/providers/FeedbackProvider";
 import { useShiftLink } from "@/components/providers/ShiftLinkProvider";
 import RoleGuard from "@/components/RoleGuard";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function ShiftManagementPage() {
     const { employees, shifts, saveShift, deleteShift } = useShiftLink();
     const { confirm, notify } = useFeedback();
+    const { t } = useLanguage();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
 
@@ -37,7 +39,7 @@ export default function ShiftManagementPage() {
             !newShift.type ||
             !newShift.endTime
         ) {
-            notify("Please fill in all fields.", "error");
+            notify(t("fillAllFields"), "error");
             return;
         }
 
@@ -49,7 +51,7 @@ export default function ShiftManagementPage() {
 
         if (!Number.isFinite(hours) || hours <= 0) {
             notify(
-                "Break time must be non-negative and shorter than the shift duration.",
+                t("invalidBreak"),
                 "error"
             );
             return;
@@ -71,28 +73,28 @@ export default function ShiftManagementPage() {
             setEditingShiftId(null);
             setIsAddModalOpen(false);
 
-            notify(editingShiftId ? "Shift updated." : "Shift added.");
+            notify(editingShiftId ? t("shiftUpdated") : t("shiftAdded"));
         } catch (error) {
             const message = error instanceof Error
                 ? error.message
-                : "Failed to save shift.";
+                : t("shiftSaveFailed");
 
             notify(message, "error");
         }
     }
 
     async function handleDeleteShift(id: number) {
-        if (!await confirm("Are you sure you want to delete this shift?")) {
+        if (!await confirm(t("deleteShiftConfirm"))) {
             return;
         }
 
         try {
             await deleteShift(id);
-            notify("Shift deleted.");
+            notify(t("shiftDeleted"));
         } catch (error) {
             const message = error instanceof Error
                 ? error.message
-                : "Failed to delete shift.";
+                : t("shiftDeleteFailed");
 
             notify(message, "error");
         }
@@ -128,8 +130,8 @@ export default function ShiftManagementPage() {
                 </>
             </RoleGuard>
             <PageHeader
-                title="Shift Management"
-                description="Create and manage employee shifts."
+                title={t("shiftManagement")}
+                description={t("shiftManagementDescription")}
                 action={
                     <button className="btn btn-primary" onClick={() => {
                         resetNewShift();
@@ -137,7 +139,7 @@ export default function ShiftManagementPage() {
                         setIsAddModalOpen(true);
                     }}>
                         <Plus size={18} />
-                        Add Shift
+                        {t("addShift")}
                     </button>
                 }
             />
@@ -146,14 +148,14 @@ export default function ShiftManagementPage() {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Employee</th>
-                            <th>Type</th>
-                            <th>Shift Time</th>
-                            <th>Break</th>
-                            <th>Working Hours</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{t("date")}</th>
+                            <th>{t("employee")}</th>
+                            <th>{t("type")}</th>
+                            <th>{t("shiftTime")}</th>
+                            <th>{t("break")}</th>
+                            <th>{t("workingHours")}</th>
+                            <th>{t("status")}</th>
+                            <th>{t("actions")}</th>
                         </tr>
                     </thead>
 
@@ -168,8 +170,8 @@ export default function ShiftManagementPage() {
                                 </td>
 
                                 <td>{shift.time}</td>
-                                <td>{shift.breakMinutes} min</td>
-                                <td>{shift.hours} h</td>
+                                <td>{shift.breakMinutes} {t("minutesShort")}</td>
+                                <td>{shift.hours} {t("hoursShort")}</td>
 
                                 <td>
                                     <StatusBadge status={shift.status} />
@@ -187,12 +189,12 @@ export default function ShiftManagementPage() {
             {isAddModalOpen && (
                 <Modal>
                     <h2 className="text-xl font-bold">
-                        {editingShiftId ? "Edit Shift" : "Add Shift"}
+                        {editingShiftId ? t("editShift") : t("addShift")}
                     </h2>
 
                     <div className="mt-6 space-y-4">
                         <label className="form-control">
-                            <span className="label-text mb-2">Date</span>
+                            <span className="label-text mb-2">{t("date")}</span>
 
                             <input
                                 type="date"
@@ -205,7 +207,7 @@ export default function ShiftManagementPage() {
                         </label>
 
                         <label className="form-control">
-                            <span className="label-text mb-2">Employee</span>
+                            <span className="label-text mb-2">{t("employee")}</span>
 
                             {editingShiftId !== null ? (
                                 <input
@@ -235,7 +237,7 @@ export default function ShiftManagementPage() {
                                     }}
                                 >
                                     <option value="" disabled>
-                                        Select an employee
+                                        {t("selectEmployee")}
                                     </option>
 
                                     {activeEmployees.map((employee) => (
@@ -248,7 +250,7 @@ export default function ShiftManagementPage() {
                         </label>
 
                         <label className="form-control">
-                            <span className="label-text mb-2">Employee Type</span>
+                            <span className="label-text mb-2">{t("employeeType")}</span>
 
                             <input
                                 type="text"
@@ -260,7 +262,7 @@ export default function ShiftManagementPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <label className="form-control">
-                                <span className="label-text mb-2">Start Time</span>
+                                <span className="label-text mb-2">{t("startTime")}</span>
 
                                 <input
                                     type="time"
@@ -276,7 +278,7 @@ export default function ShiftManagementPage() {
                             </label>
 
                             <label className="form-control">
-                                <span className="label-text mb-2">End Time</span>
+                                <span className="label-text mb-2">{t("endTime")}</span>
 
                                 <input
                                     type="time"
@@ -294,7 +296,7 @@ export default function ShiftManagementPage() {
 
                         <label className="form-control">
                             <span className="label-text mb-2">
-                                Break Time (minutes)
+                                {t("breakMinutes")}
                             </span>
 
                             <input
@@ -322,7 +324,7 @@ export default function ShiftManagementPage() {
                                     setIsAddModalOpen(false);
                                 }}
                             >
-                                Cancel
+                                {t("cancel")}
                             </button>
 
                             <button
@@ -330,7 +332,7 @@ export default function ShiftManagementPage() {
                                 className="btn btn-primary"
                                 onClick={handleSaveShift}
                             >
-                                {editingShiftId ? "Update Shift" : "Add Shift"}
+                                {editingShiftId ? t("updateShift") : t("addShift")}
                             </button>
                         </div>
                     </div>
