@@ -1,7 +1,10 @@
 export function getApiBaseUrl(): string {
-    if (typeof window !== "undefined" && window.location.hostname === "127.0.0.1") {
-        return "http://127.0.0.1:8080";
+    if (typeof window !== "undefined") {
+        const host = window.location.hostname;
+        if (host === "localhost" || host === "127.0.0.1") {
+            return "http://localhost:8080";
+        }
     }
 
-    return "http://localhost:8080";
+    return "";
 }
