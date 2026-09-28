@@ -24,6 +24,8 @@ export default function EmployeesPage() {
     const { t } = useLanguage();
     const [newEmployee, setNewEmployee] = useState<EmployeeFormData>(createEmployeeForm);
     const [editingEmployeeCode, setEditingEmployeeCode] = useState<string | null>(null);
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+    const protectedDemoCodes = ["ADM-DEMO", "MGR-DEMO", "USR-DEMO"];
 
     const keyword = searchText.toLowerCase();
     const filteredEmployees = employees.filter((employee) => {
@@ -205,7 +207,13 @@ export default function EmployeesPage() {
                                 </td>
 
                                 <td>
-                                    <RecordActions label={employee.name} onEdit={() => handleEditEmployee(employee.code)} onDelete={() => handleDeleteEmployee(employee.code)} />
+                                    {(!isDemoMode || !protectedDemoCodes.includes(employee.code)) && (
+                                        <RecordActions
+                                            label={employee.name}
+                                            onEdit={() => handleEditEmployee(employee.code)}
+                                            onDelete={() => handleDeleteEmployee(employee.code)}
+                                        />
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -290,7 +298,7 @@ export default function EmployeesPage() {
                                 >
                                     <option value="User">{t("user")}</option>
                                     <option value="Manager">{t("manager")}</option>
-                                    <option value="Admin">{t("admin")}</option>
+                                    {!isDemoMode && <option value="Admin">{t("admin")}</option>}
                                 </select>
                             </label>
 
